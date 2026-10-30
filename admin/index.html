@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>لوحة التحكم</title>
+</head>
+<body>
+<script>
+  // Repository is detected from the GitHub Pages address (USERNAME.github.io).
+  // To set it by hand, write it here, e.g. "username/username.github.io".
+  var REPO = "";
+
+  (function () {
+    if (REPO) return;
+    var host = location.hostname, segs = location.pathname.split("/").filter(Boolean);
+    if (/\.github\.io$/.test(host)) {
+      var owner = host.split(".")[0];
+      REPO = owner + "/" + (segs[0] && segs[0] !== "admin" ? segs[0] : host);
+    } else {
+      REPO = "owner/repo";
+    }
+  })();
+  window.CMS_MANUAL_INIT = true;
+</script>
+<script src="sveltia-cms.js"></script>
+<script>
+  var BLOCK_TYPES = ["بطاقة", "فقرة", "عنوان فرعي", "اقتباس", "صورة", "تواصل"];
+  var SECTIONS = [
+    ["hero", "أول الصفحة (الاسم والصورة)"],
+    ["journey", "رحلتي في التعلم"],
+    ["skills", "مهاراتي التقنية"],
+    ["project", "المشروعات"],
+    ["tools", "أدواتي"],
+    ["philosophy", "فلسفتي في التعليم"],
+    ["reflections", "تأملاتي"],
+    ["experience", "خبرتي المهنية"],
+    ["qualifications", "التطوير المهني والمؤهلات"],
+    ["gallery", "معرض الصور"],
+    ["contact", "التواصل"]
+  ];
+  function f(name, label, widget, extra) {
+    var o = { name: name, label: label, widget: widget, required: false };
+    for (var k in extra || {}) o[k] = extra[k];
+    return o;
+  }
+  var sectionFields = [
+    f("title", "العنوان الكبير", "string"),
+    f("subtitle", "عنوان فرعي", "string"),
+    f("text", "المقدمة", "text", { hint: "سطر فاضي = فقرة جديدة. السطر اللي يبدأ بـ - = نقطة في قائمة. الكلام بين ** و ** يظهر عريض." }),
+    f("image", "صورة", "image"),
+    f("nav", "اسم القسم في القائمة اللي فوق", "string"),
+    f("show", "إظهار القسم في الموقع", "boolean", { default: true }),
+    f("blocks", "محتوى القسم", "list", {
+      summary: "{{fields.type}}: {{fields.title}}",
+      add_to_top: false,
+      fields: [
+        f("type", "النوع", "select", { options: BLOCK_TYPES, default: "بطاقة", required: true }),
+        f("title", "العنوان", "string"),
+        f("subtitle", "عنوان فرعي / تاريخ", "string"),
+        f("text", "النص", "text", { hint: "سطر فاضي = فقرة جديدة. السطر اللي يبدأ بـ - = نقطة في قائمة." }),
+        f("image", "صورة", "image"),
+        f("show", "إظهار", "boolean", { default: true })
+      ]
+    })
+  ];
+  CMS.init({
+    config: {
+      load_config_file: false,
+      backend: { name: "github", repo: REPO, branch: "main" },
+      media_folder: "images",
+      public_folder: "/images",
+      site_url: location.origin + location.pathname.replace(/admin\/?.*$/, ""),
+      collections: [{
+        name: "sections",
+        label: "أقسام الموقع",
+        files: SECTIONS.map(function (s) {
+          return { name: s[0], label: s[1], file: "data/" + s[0] + ".json", format: "json", fields: sectionFields };
+        })
+      }]
+    }
+  });
+</script>
+</body>
+</html>
